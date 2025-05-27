@@ -3,7 +3,10 @@ name: Build and Release APK
 on:
   push:
     branches:
-      - main  # or any branch you want to trigger this from
+      - main
+
+permissions:
+  contents: write  # ✅ Required to create tags/releases with GITHUB_TOKEN
 
 jobs:
   build:
