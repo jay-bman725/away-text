@@ -1,9 +1,9 @@
-name: Build Signed Release APK
+name: Build and Release APK
 
 on:
   push:
-    tags:
-      - 'v*' # Only runs on tags like v1.0, v2.3.1, etc.
+    branches:
+      - main  # Or change to your desired branch
 
 jobs:
   build:
@@ -38,17 +38,26 @@ jobs:
       - name: Build signed release APK
         run: ./gradlew :app:assembleRelease --build-cache --no-daemon
 
-      - name: Upload release APK as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: away-text-release-apk
-          path: app/build/outputs/apk/release/*.apk
+      - name: Read version from file
+        id: version
+        run: |
+          VERSION=$(cat version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          files: app/build/outputs/apk/release/*.apk
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          files: |
+            app/build/outputs/apk/release/*.apk
+            version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
