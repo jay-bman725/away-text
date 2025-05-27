@@ -3,7 +3,7 @@ name: Build and Release APK
 on:
   push:
     branches:
-      - main  # Or change to your desired branch
+      - main  # or any branch you want to trigger this from
 
 jobs:
   build:
@@ -44,14 +44,7 @@ jobs:
           VERSION=$(cat version)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
-
-      - name: Create GitHub Release
+      - name: Create GitHub Release and Upload APK
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
