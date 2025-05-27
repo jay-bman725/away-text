@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -182,7 +183,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isAppRunning) Icons.Default.CheckCircle else Icons.Outlined.PlayCircleOutline,
+                        imageVector = if (isAppRunning) Icons.Default.CheckCircle else Icons.Default.PlayArrow,
                         contentDescription = null,
                         modifier = Modifier.size(60.dp),
                         tint = if (isAppRunning) {
@@ -269,7 +270,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp)
             ) {
                 Icon(
-                    imageVector = if (isRunning) Icons.Default.Stop else Icons.Default.PlayArrow,
+                    imageVector = if (isRunning) Icons.Default.Close else Icons.Default.PlayArrow,
                     contentDescription = null,
                     modifier = Modifier.size(28.dp)
                 )
@@ -314,10 +315,10 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 val features = listOf(
-                    Pair(Icons.Default.Message, "Monitors incoming text messages"),
+                    Pair(Icons.Default.Email, "Monitors incoming text messages"),
                     Pair(Icons.Default.Send, "Automatically sends replies when active"),
-                    Pair(Icons.Default.CloudQueue, "Runs in the background continuously"),
-                    Pair(Icons.Default.DoNotDisturb, "Respects your Do Not Disturb settings")
+                    Pair(Icons.Default.Settings, "Runs in the background continuously"),
+                    Pair(Icons.Default.Notifications, "Respects your Do Not Disturb settings")
                 )
                 
                 features.forEach { (icon, feature) ->
@@ -342,7 +343,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = Icons.Default.DoNotDisturb,
+                        imageVector = Icons.Default.Notifications,
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -401,7 +402,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 }
                 
                 SettingToggleRow(
-                    icon = Icons.Default.Stop,
+                    icon = Icons.Default.Close,
                     title = "Auto-stop when DND ends",
                     subtitle = "Stop AwayText when DND is disabled",
                     checked = isDndAutoStopEnabled,
