@@ -1,9 +1,9 @@
-name: Build APK
+name: Build Signed Release APK
 
 on:
   push:
-    branches:
-      - '**'
+    tags:
+      - 'v*' # Only runs on tags like v1.0, v2.3.1, etc.
 
 jobs:
   build:
@@ -33,12 +33,22 @@ jobs:
           echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> ./app/gradle.properties
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> ./app/gradle.properties
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> ./app/gradle.properties
+          echo "STORE_FILE=../release.keystore" >> ./app/gradle.properties
 
       - name: Build signed release APK
         run: ./gradlew :app:assembleRelease --build-cache --no-daemon
 
-      - name: Upload release APK
+      - name: Upload release APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: away-text-release-apk
           path: app/build/outputs/apk/release/*.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
