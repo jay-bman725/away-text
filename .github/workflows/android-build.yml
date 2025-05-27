@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  contents: write  # ✅ Required to create tags/releases with GITHUB_TOKEN
+  contents: write
 
 jobs:
   build:
@@ -31,15 +31,13 @@ jobs:
       - name: Decode keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
 
-      - name: Add signing configs to gradle.properties
-        run: |
-          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> ./app/gradle.properties
-          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> ./app/gradle.properties
-          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> ./app/gradle.properties
-          echo "STORE_FILE=../release.keystore" >> ./app/gradle.properties
-
       - name: Build signed release APK
         run: ./gradlew :app:assembleRelease --build-cache --no-daemon
+        env:
+          STORE_FILE: ${{ github.workspace }}/release.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Read version from file
         id: version
@@ -53,7 +51,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
           files: |
-            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/app-release.apk
             version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
