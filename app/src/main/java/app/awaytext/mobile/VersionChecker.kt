@@ -20,13 +20,14 @@ object VersionChecker {
     /**
      * Check for app updates if needed (respects the 1-hour interval)
      */
-    fun checkForUpdatesIfNeeded(context: Context, onUpdateAvailable: (String) -> Unit) {
+    fun checkForUpdatesIfNeeded(context: Context, onUpdateAvailable: (String) -> Unit, onCheckComplete: ((Boolean) -> Unit)? = null) {
         val prefs = AppPreferences.getInstance(context)
         val now = System.currentTimeMillis()
         
         // Check if enough time has passed since last check
         if (now - prefs.lastVersionCheck < CHECK_INTERVAL_MS) {
             Log.d(TAG, "Skipping version check - too soon since last check")
+            onCheckComplete?.invoke(false)
             return
         }
         
@@ -34,16 +35,18 @@ object VersionChecker {
         prefs.lastVersionCheck = now
         
         // Perform the version check
-        checkForUpdates(context, onUpdateAvailable)
+        checkForUpdates(context, onUpdateAvailable, onCheckComplete)
     }
     
     /**
      * Force check for app updates
      */
-    fun checkForUpdates(context: Context, onUpdateAvailable: (String) -> Unit) {
+    fun checkForUpdates(context: Context, onUpdateAvailable: (String) -> Unit, onCheckComplete: ((Boolean) -> Unit)? = null) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val remoteVersion = fetchRemoteVersion()
+                var updateFound = false
+                
                 if (remoteVersion != null) {
                     val currentVersion = getCurrentVersion(context)
                     val prefs = AppPreferences.getInstance(context)
@@ -52,6 +55,7 @@ object VersionChecker {
                     prefs.latestKnownVersion = remoteVersion
                     
                     if (isNewerVersion(currentVersion, remoteVersion)) {
+                        updateFound = true
                         // Reset dismissed status for new versions
                         if (prefs.latestKnownVersion != remoteVersion) {
                             prefs.isVersionUpdateDismissed = false
@@ -65,8 +69,16 @@ object VersionChecker {
                         }
                     }
                 }
+                
+                // Notify completion with result
+                withContext(Dispatchers.Main) {
+                    onCheckComplete?.invoke(updateFound)
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Error checking for updates: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    onCheckComplete?.invoke(false)
+                }
             }
         }
     }

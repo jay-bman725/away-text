@@ -52,15 +52,23 @@ class MainActivity : ComponentActivity() {
                 var showMenu by remember { mutableStateOf(false) }
                 var showSettings by remember { mutableStateOf(false) }
                 var showUpdateDialog by remember { mutableStateOf(false) }
+                var showNoUpdateDialog by remember { mutableStateOf(false) }
                 var updateVersion by remember { mutableStateOf("") }
                 val context = LocalContext.current
                 
                 // Check for updates when the app starts
                 LaunchedEffect(Unit) {
-                    VersionChecker.checkForUpdatesIfNeeded(context) { version ->
-                        updateVersion = version
-                        showUpdateDialog = true
-                    }
+                    VersionChecker.checkForUpdatesIfNeeded(
+                        context = context,
+                        onUpdateAvailable = { version ->
+                            updateVersion = version
+                            showUpdateDialog = true
+                        },
+                        onCheckComplete = { updateFound ->
+                            // Only show "no update" dialog if manually triggered
+                            // This is handled in SettingsScreen when user manually checks
+                        }
+                    )
                 }
                 
                 if (showSettings) {
@@ -149,6 +157,24 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) {
                                 Text("Later")
+                            }
+                        }
+                    )
+                }
+                
+                // No Update Dialog
+                if (showNoUpdateDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showNoUpdateDialog = false },
+                        title = { Text("No Updates") },
+                        text = { 
+                            Text("You have the latest version of Away Text.")
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = { showNoUpdateDialog = false }
+                            ) {
+                                Text("OK")
                             }
                         }
                     )

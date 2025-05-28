@@ -42,6 +42,7 @@ fun SettingsScreen(
     var useCustomContactMessages by remember { mutableStateOf(appPreferences.useCustomContactMessages) }
     var showContactPermissionDialog by remember { mutableStateOf(false) }
     var showUpdateDialog by remember { mutableStateOf(false) }
+    var showNoUpdateDialog by remember { mutableStateOf(false) }
     var updateVersion by remember { mutableStateOf("") }
     
     // Check contacts permission
@@ -63,10 +64,13 @@ fun SettingsScreen(
     
     // Check for updates on screen load
     LaunchedEffect(Unit) {
-        VersionChecker.checkForUpdatesIfNeeded(context) { version ->
-            updateVersion = version
-            showUpdateDialog = true
-        }
+        VersionChecker.checkForUpdatesIfNeeded(
+            context = context,
+            onUpdateAvailable = { version ->
+                updateVersion = version
+                showUpdateDialog = true
+            }
+        )
     }
     
     Scaffold(
@@ -253,10 +257,18 @@ fun SettingsScreen(
                     
                     OutlinedButton(
                         onClick = {
-                            VersionChecker.checkForUpdates(context) { version ->
-                                updateVersion = version
-                                showUpdateDialog = true
-                            }
+                            VersionChecker.checkForUpdates(
+                                context = context,
+                                onUpdateAvailable = { version ->
+                                    updateVersion = version
+                                    showUpdateDialog = true
+                                },
+                                onCheckComplete = { updateFound ->
+                                    if (!updateFound) {
+                                        showNoUpdateDialog = true
+                                    }
+                                }
+                            )
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
