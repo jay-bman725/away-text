@@ -206,12 +206,32 @@ class MessageMonitoringService : Service() {
         
         Log.d(TAG, "Processing ${messageType.name} message from: $sender")
         
-        // Send auto-reply based on message type
-        sendAutoReply(sender, messageType)
+        // Check if we should send a reply based on the cooldown period
+        if (appPreferences.canSendReplyToSender(sender)) {
+            // Send auto-reply based on message type
+            sendAutoReply(sender, messageType)
+            // Record the timestamp of this reply
+            appPreferences.recordLastReplyTimestamp(sender)
+            Log.d(TAG, "Auto-reply sent and timestamp recorded for $sender")
+        } else {
+            // Get remaining cooldown time for better logging
+            val remainingTime = appPreferences.getRemainingCooldownTime(sender)
+            val formattedTime = RcsUtils.formatDuration(remainingTime)
+            Log.d(TAG, "Skipping auto-reply to $sender - within cooldown period ($formattedTime remaining)")
+        }
     }
     
     private fun sendAutoReply(sender: String, messageType: MessageType) {
-        val autoReplyMessage = "I'm currently away and will respond to your message later. This is an automated reply from Away Text."
+        val appPreferences = AppPreferences.getInstance(this)
+        
+        // Get the appropriate message to send
+        val autoReplyMessage = if (appPreferences.useCustomContactMessages && appPreferences.isContactsPermissionGranted) {
+            // Try to get custom message for this contact
+            appPreferences.getCustomMessageForContact(sender) ?: appPreferences.defaultAwayMessage
+        } else {
+            // Use default message
+            appPreferences.defaultAwayMessage
+        }
         
         try {
             val success = when (messageType) {

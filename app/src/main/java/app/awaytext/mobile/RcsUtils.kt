@@ -53,4 +53,38 @@ object RcsUtils {
         // we check for basic messaging permissions
         return AppPreferences.getInstance(context).isSmsPermissionsGranted
     }
+    
+    /**
+     * Format milliseconds into a human-readable duration string
+     * @param milliseconds The duration in milliseconds
+     * @return Human-readable string (e.g. "3 mins 45 secs")
+     */
+    fun formatDuration(milliseconds: Long): String {
+        if (milliseconds <= 0) return "0 secs"
+        
+        val seconds = (milliseconds / 1000) % 60
+        val minutes = (milliseconds / (1000 * 60)) % 60
+        
+        return when {
+            minutes > 0 -> "$minutes ${if (minutes == 1L) "min" else "mins"} $seconds ${if (seconds == 1L) "sec" else "secs"}"
+            else -> "$seconds ${if (seconds == 1L) "sec" else "secs"}"
+        }
+    }
+    
+    /**
+     * Get cooldown status for a specific sender
+     * @param context Application context
+     * @param sender The sender's phone number
+     * @return Human-readable cooldown status
+     */
+    fun getCooldownStatus(context: Context, sender: String): String {
+        val appPreferences = AppPreferences.getInstance(context)
+        val remainingTime = appPreferences.getRemainingCooldownTime(sender)
+        
+        return if (remainingTime <= 0) {
+            "Ready to send"
+        } else {
+            "Cooldown: ${formatDuration(remainingTime)} remaining"
+        }
+    }
 }

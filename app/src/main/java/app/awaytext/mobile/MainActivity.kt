@@ -1,6 +1,7 @@
 package app.awaytext.mobile
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -49,54 +50,107 @@ class MainActivity : ComponentActivity() {
         setContent {
             AwayTextTheme {
                 var showMenu by remember { mutableStateOf(false) }
+                var showSettings by remember { mutableStateOf(false) }
+                var showUpdateDialog by remember { mutableStateOf(false) }
+                var updateVersion by remember { mutableStateOf("") }
                 val context = LocalContext.current
                 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = { 
-                                Text(
-                                    "Away Text",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                )
-                            },
-                            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            actions = {
-                                IconButton(onClick = { showMenu = !showMenu }) {
-                                    Icon(
-                                        Icons.Default.MoreVert, 
-                                        contentDescription = "More options",
-                                        tint = MaterialTheme.colorScheme.onSurface
+                // Check for updates when the app starts
+                LaunchedEffect(Unit) {
+                    VersionChecker.checkForUpdatesIfNeeded(context) { version ->
+                        updateVersion = version
+                        showUpdateDialog = true
+                    }
+                }
+                
+                if (showSettings) {
+                    SettingsScreen(
+                        onNavigateBack = { showSettings = false }
+                    )
+                } else {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        topBar = {
+                            CenterAlignedTopAppBar(
+                                title = { 
+                                    Text(
+                                        "Away Text",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp
                                     )
+                                },
+                                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ),
+                                actions = {
+                                    IconButton(onClick = { showMenu = !showMenu }) {
+                                        Icon(
+                                            Icons.Default.MoreVert, 
+                                            contentDescription = "More options",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                    
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false }
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Reset Onboarding") },
+                                            onClick = {
+                                                showMenu = false
+                                                // Reset all onboarding, permissions, and settings
+                                                AppPreferences.getInstance(context).resetAllPermissionsAndSettings()
+                                                Toast.makeText(context, "All settings reset. Restart app to see welcome screen.", Toast.LENGTH_LONG).show()
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                            }
+                                        )
+                                    }
                                 }
-                                
-                                DropdownMenu(
-                                    expanded = showMenu,
-                                    onDismissRequest = { showMenu = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("Reset Onboarding") },
-                                        onClick = {
-                                            showMenu = false
-                                            // Reset all onboarding and permissions
-                                            AppPreferences.getInstance(context).resetAllPermissions()
-                                            Toast.makeText(context, "Onboarding reset. Restart app to see welcome screen.", Toast.LENGTH_LONG).show()
-                                        },
-                                        leadingIcon = {
-                                            Icon(Icons.Default.Refresh, contentDescription = null)
-                                        }
-                                    )
-                                }
-                            }
+                            )
+                        }
+                    ) { innerPadding ->
+                        MainScreen(
+                            modifier = Modifier.padding(innerPadding),
+                            onOpenSettings = { showSettings = true }
                         )
                     }
-                ) { innerPadding ->
-                    MainScreen(
-                        modifier = Modifier.padding(innerPadding)
+                }
+                
+                // Update Available Dialog
+                if (showUpdateDialog && updateVersion.isNotEmpty()) {
+                    AlertDialog(
+                        onDismissRequest = { 
+                            showUpdateDialog = false
+                            VersionChecker.dismissCurrentUpdate(context)
+                        },
+                        title = { Text("Update Available") },
+                        text = { 
+                            Text("A new version ($updateVersion) of Away Text is available. Would you like to download it?")
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showUpdateDialog = false
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(VersionChecker.getReleasesUrl()))
+                                    context.startActivity(intent)
+                                }
+                            ) {
+                                Text("Download")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { 
+                                    showUpdateDialog = false
+                                    VersionChecker.dismissCurrentUpdate(context)
+                                }
+                            ) {
+                                Text("Later")
+                            }
+                        }
                     )
                 }
             }
@@ -111,7 +165,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(
+    modifier: Modifier = Modifier,
+    onOpenSettings: () -> Unit = {}
+) {
     val context = LocalContext.current
     val appPreferences = AppPreferences.getInstance(context)
     
@@ -486,10 +543,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
         
         // Enhanced Settings Button
         OutlinedButton(
-            onClick = {
-                // TODO: Open settings screen
-                Toast.makeText(context, "Settings coming soon!", Toast.LENGTH_SHORT).show()
-            },
+            onClick = onOpenSettings,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)

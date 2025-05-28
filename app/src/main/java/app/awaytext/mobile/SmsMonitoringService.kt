@@ -163,8 +163,14 @@ class SmsMonitoringService : Service() {
             return
         }
         
-        // Simple auto-reply logic - you can expand this
-        val autoReplyMessage = "I'm currently away and will respond to your message later. This is an automated reply from Away Text."
+        // Get the appropriate message to send
+        val autoReplyMessage = if (appPreferences.useCustomContactMessages && appPreferences.isContactsPermissionGranted) {
+            // Try to get custom message for this contact
+            appPreferences.getCustomMessageForContact(sender) ?: appPreferences.defaultAwayMessage
+        } else {
+            // Use default message
+            appPreferences.defaultAwayMessage
+        }
         
         try {
             val smsManager = SmsManager.getDefault()
