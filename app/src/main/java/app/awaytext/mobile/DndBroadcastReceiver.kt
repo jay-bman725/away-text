@@ -41,7 +41,7 @@ class DndBroadcastReceiver : BroadcastReceiver() {
         if (isDndActive && !appPreferences.isAppRunning) {
             // Start AwayText automatically
             appPreferences.setAppRunning(true)
-            SmsMonitoringService.startService(context)
+            MessageMonitoringService.startService(context)
             
             // Show a subtle notification to inform the user
             Toast.makeText(
@@ -53,7 +53,7 @@ class DndBroadcastReceiver : BroadcastReceiver() {
         } else if (!isDndActive && appPreferences.isAppRunning && appPreferences.isDndAutoStopEnabled) {
             // Optionally stop AwayText when DND is turned off (if user enables this feature)
             appPreferences.setAppRunning(false)
-            SmsMonitoringService.stopService(context)
+            MessageMonitoringService.stopService(context)
             
             Toast.makeText(
                 context, 

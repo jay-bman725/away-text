@@ -4,9 +4,11 @@ AwayText is a simple and customizable Android app that automatically replies to 
 
 ## ✨ Features
 
-- 📨 Auto-reply to incoming SMS with a custom message
+- 📨 Auto-reply to incoming SMS and RCS messages with a custom message
+- 🚀 Intelligent message type detection (uses RCS when available, falls back to SMS)
 - 🕒 Enable or disable AwayText with one tap
 - 📱 Lightweight and battery-efficient
+- 🔔 Do Not Disturb integration for automatic activation
 
 ## 💼 TODO
 - 📋 Custom status messages for different scenarios (e.g. "Driving", "In a meeting", "Sleeping")

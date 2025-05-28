@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     
+    <!-- MMS permissions for enhanced messaging support -->
+    <uses-permission android:name="android.permission.RECEIVE_MMS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    
     <!-- Contacts permission for customization -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     
@@ -51,11 +55,29 @@
             android:theme="@style/Theme.AwayText">
         </activity>
         
-        <!-- Background SMS monitoring service -->
+        <!-- Enhanced message monitoring service for SMS/RCS -->
+        <service
+            android:name=".MessageMonitoringService"
+            android:exported="false"
+            android:foregroundServiceType="remoteMessaging" />
+            
+        <!-- Legacy SMS monitoring service (kept for compatibility) -->
         <service
             android:name=".SmsMonitoringService"
             android:exported="false"
             android:foregroundServiceType="remoteMessaging" />
+            
+        <!-- Unified message receiver for SMS/MMS/RCS -->
+        <receiver
+            android:name=".UnifiedMessageReceiver"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.provider.Telephony.MMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
             
     </application>
 

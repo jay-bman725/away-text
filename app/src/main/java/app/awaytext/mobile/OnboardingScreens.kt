@@ -128,12 +128,13 @@ fun SmsPermissionScreen(
     
     PermissionScreenTemplate(
         icon = Icons.Default.Email,
-        title = "SMS Permissions",
-        description = "Allow Away Text to read and send messages to automatically respond when you're away.",
+        title = "SMS & RCS Permissions",
+        description = "Allow Away Text to read and send SMS and RCS messages to automatically respond when you're away.",
         details = listOf(
-            "Read incoming messages to detect when you're being contacted",
-            "Send automatic replies when you're unavailable",
-            "Monitor message notifications"
+            "Read incoming SMS and RCS messages to detect when you're being contacted",
+            "Send automatic replies using SMS or RCS when you're unavailable",
+            "Monitor message notifications across all messaging types",
+            "Automatically choose the best messaging format (RCS when available, SMS as fallback)"
         ),
         onGrantPermissionClick = {
             launcher.launch(smsPermissions)

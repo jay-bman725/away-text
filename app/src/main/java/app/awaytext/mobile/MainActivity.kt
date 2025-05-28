@@ -212,7 +212,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 
                 Text(
                     text = if (isAppRunning) {
-                        "✨ Monitoring messages and sending auto-replies"
+                        "✨ Monitoring SMS/RCS messages and sending auto-replies"
                     } else {
                         "Tap the button below to start monitoring messages"
                     },
@@ -247,12 +247,12 @@ fun MainScreen(modifier: Modifier = Modifier) {
                     appPreferences.setAppRunning(newRunningState)
                     
                     if (newRunningState) {
-                        // Start the SMS monitoring service
-                        SmsMonitoringService.startService(context)
+                        // Start the message monitoring service (SMS/RCS)
+                        MessageMonitoringService.startService(context)
                         Toast.makeText(context, "Away Text started", Toast.LENGTH_SHORT).show()
                     } else {
-                        // Stop the SMS monitoring service
-                        SmsMonitoringService.stopService(context)
+                        // Stop the message monitoring service
+                        MessageMonitoringService.stopService(context)
                         Toast.makeText(context, "Away Text stopped", Toast.LENGTH_SHORT).show()
                     }
                 },
@@ -315,7 +315,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 val features = listOf(
-                    Pair(Icons.Default.Email, "Monitors incoming text messages"),
+                    Pair(Icons.Default.Email, "Monitors incoming SMS and RCS messages"),
                     Pair(Icons.Default.Send, "Automatically sends replies when active"),
                     Pair(Icons.Default.Settings, "Runs in the background continuously"),
                     Pair(Icons.Default.Notifications, "Respects your Do Not Disturb settings")
@@ -452,6 +452,36 @@ fun MainScreen(modifier: Modifier = Modifier) {
             }
         }
         
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // RCS Status Info Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = RcsUtils.getRcsShortStatus(context),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
         
         // Enhanced Settings Button

@@ -83,7 +83,7 @@ object DndManager {
         // Check if DND is active and auto-start AwayText
         if (isDndActive(context)) {
             appPreferences.setAppRunning(true)
-            SmsMonitoringService.startService(context)
+            MessageMonitoringService.startService(context)
         }
     }
 }
